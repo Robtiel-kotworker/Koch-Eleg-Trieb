@@ -1,5 +1,6 @@
 import { useAppStore } from '../state/store';
 import { Knob } from './Knob';
+import { TempoAssign } from './TempoAssign';
 
 interface PartEditorProps {
   onOpenSampleBrowser: () => void;
@@ -37,6 +38,7 @@ export function PartEditor({ onOpenSampleBrowser }: PartEditorProps) {
           <span className="sample-picker-label">Sample</span>
           <span className="sample-picker-value">{sample ? sample.name : '— none —'}</span>
         </button>
+        <TempoAssign partId={part.id} sample={sample} />
       </div>
 
       <div className="knob-row">

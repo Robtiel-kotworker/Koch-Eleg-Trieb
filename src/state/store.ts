@@ -31,6 +31,8 @@ interface AppState {
   audioReady: boolean;
   samples: LoadedSample[];
   packs: SamplePack[];
+  /** Sample id -> last auto-detected tempo, so re-selecting a sample remembers it. */
+  detectedBpmBySampleId: Record<string, number>;
 
   init: () => Promise<void>;
   setPlaying: (playing: boolean) => void;
@@ -70,6 +72,8 @@ interface AppState {
   addPack: (pack: SamplePack) => void;
   removePackFromState: (packId: string) => void;
   removeSampleFromState: (sampleId: string) => void;
+
+  setDetectedBpm: (sampleId: string, bpm: number) => void;
 }
 
 function updateCurrentPattern(state: AppState, fn: (pattern: Pattern) => Pattern): Pick<AppState, 'patterns'> {
@@ -92,6 +96,7 @@ export const useAppStore = create<AppState>()(
       audioReady: false,
       samples: [],
       packs: [],
+      detectedBpmBySampleId: {},
 
       init: async () => {
         const [initKit, userSamples, packs] = await Promise.all([
@@ -230,6 +235,9 @@ export const useAppStore = create<AppState>()(
         })),
       removeSampleFromState: (sampleId) =>
         set((state) => ({ samples: state.samples.filter((s) => s.id !== sampleId) })),
+
+      setDetectedBpm: (sampleId, bpm) =>
+        set((state) => ({ detectedBpmBySampleId: { ...state.detectedBpmBySampleId, [sampleId]: bpm } })),
     }),
     {
       name: 'electribe-clone-state',
@@ -240,6 +248,7 @@ export const useAppStore = create<AppState>()(
         swing: state.swing,
         masterVolume: state.masterVolume,
         selectedPartId: state.selectedPartId,
+        detectedBpmBySampleId: state.detectedBpmBySampleId,
       }),
     },
   ),
