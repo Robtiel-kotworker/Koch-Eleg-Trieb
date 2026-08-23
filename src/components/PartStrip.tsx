@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react';
 import { useAppStore } from '../state/store';
+import { createTripleTapDetector } from '../state/tripleTap';
 import { PartPadEditor } from './PartPadEditor';
 
-const LONG_PRESS_MS = 3000;
+/** Consecutive taps on the same pad within this window count toward a triple-tap. */
+const TRIPLE_TAP_WINDOW_MS = 500;
+const TRIPLE_TAP_COUNT = 3;
 
 export function PartStrip() {
   const pattern = useAppStore((s) => s.patterns.find((p) => p.id === s.currentPatternId));
@@ -14,29 +17,11 @@ export function PartStrip() {
   const setPartMeta = useAppStore((s) => s.setPartMeta);
 
   const [editingPartId, setEditingPartId] = useState<number | null>(null);
-  const pressTimer = useRef<number | null>(null);
-  const longPressFired = useRef(false);
-
-  const clearPressTimer = () => {
-    if (pressTimer.current !== null) {
-      window.clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-  };
-
-  const handlePointerDown = (partId: number) => {
-    if (editingPartId !== null) return;
-    longPressFired.current = false;
-    clearPressTimer();
-    pressTimer.current = window.setTimeout(() => {
-      longPressFired.current = true;
-      setEditingPartId(partId);
-    }, LONG_PRESS_MS);
-  };
+  const tripleTap = useRef(createTripleTapDetector(TRIPLE_TAP_WINDOW_MS, TRIPLE_TAP_COUNT)).current;
 
   const handleClick = (partId: number) => {
-    if (longPressFired.current) {
-      longPressFired.current = false;
+    if (tripleTap.registerTap(partId)) {
+      setEditingPartId(partId);
       return;
     }
     selectPart(partId);
@@ -66,10 +51,6 @@ export function PartStrip() {
                   type="button"
                   className="part-pad-main"
                   style={part.color ? { background: `color-mix(in srgb, ${part.color} 25%, var(--panel-raised))` } : undefined}
-                  onPointerDown={() => handlePointerDown(part.id)}
-                  onPointerUp={clearPressTimer}
-                  onPointerLeave={clearPressTimer}
-                  onPointerCancel={clearPressTimer}
                   onClick={() => handleClick(part.id)}
                   title={part.name}
                 >

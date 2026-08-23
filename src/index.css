@@ -289,7 +289,7 @@ select {
   border-color: var(--accent);
 }
 
-/* In-pad rename & color editor, opened by a 3s long-press on the pad */
+/* In-pad rename & color editor, opened by triple-tapping the pad */
 .pad-editor {
   position: relative;
   display: flex;
