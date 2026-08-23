@@ -1,5 +1,13 @@
 import type { VoiceOptions } from './types';
 
+/** How long a choked voice takes to fade out before being stopped, in seconds. */
+const CHOKE_FADE_S = 0.01;
+
+interface ActiveVoice {
+  source: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
 /**
  * Thin wrapper around a single shared AudioContext + master bus.
  * The context is created lazily because browsers require a user gesture
@@ -8,6 +16,7 @@ import type { VoiceOptions } from './types';
 class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private readonly activeVoicesByChokeGroup = new Map<string, ActiveVoice>();
 
   get context(): AudioContext {
     if (!this.ctx) {
@@ -51,6 +60,12 @@ class AudioEngine {
    */
   playVoice(buffer: AudioBuffer, opts: VoiceOptions): void {
     const ctx = this.context;
+    const t = Math.max(opts.time, ctx.currentTime);
+
+    if (opts.chokeGroup) {
+      this.choke(opts.chokeGroup, t);
+    }
+
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     const rate = Math.pow(2, opts.pitchSemitones / 12);
@@ -66,7 +81,6 @@ class AudioEngine {
 
     const gain = ctx.createGain();
     const peak = Math.max(0.0001, Math.min(1, opts.velocity * opts.level));
-    const t = Math.max(opts.time, ctx.currentTime);
     const attack = Math.max(0.002, opts.attack);
     const rawDuration = buffer.duration / rate;
     const release = Math.max(0.005, Math.min(opts.release, rawDuration));
@@ -80,12 +94,35 @@ class AudioEngine {
     source.connect(filter).connect(panner).connect(gain).connect(this.master);
     source.start(t);
     source.stop(t + rawDuration + 0.05);
+
+    const chokeGroup = opts.chokeGroup;
+    if (chokeGroup) {
+      this.activeVoicesByChokeGroup.set(chokeGroup, { source, gain });
+    }
     source.onended = () => {
       source.disconnect();
       filter.disconnect();
       panner.disconnect();
       gain.disconnect();
+      if (chokeGroup && this.activeVoicesByChokeGroup.get(chokeGroup)?.source === source) {
+        this.activeVoicesByChokeGroup.delete(chokeGroup);
+      }
     };
+  }
+
+  /** Fades out and stops whatever voice is currently active for this choke group, if any. */
+  private choke(chokeGroup: string, atTime: number): void {
+    const active = this.activeVoicesByChokeGroup.get(chokeGroup);
+    if (!active) return;
+    this.activeVoicesByChokeGroup.delete(chokeGroup);
+    try {
+      active.gain.gain.cancelScheduledValues(atTime);
+      active.gain.gain.setValueAtTime(active.gain.gain.value, atTime);
+      active.gain.gain.linearRampToValueAtTime(0.0001, atTime + CHOKE_FADE_S);
+      active.source.stop(atTime + CHOKE_FADE_S + 0.005);
+    } catch {
+      // Voice may have already finished/stopped on its own; nothing to do.
+    }
   }
 }
 

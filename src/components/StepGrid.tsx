@@ -87,6 +87,7 @@ export function StepGrid({ currentStep, isPlaying }: StepGridProps) {
               value={step.velocity}
               min={0}
               max={1}
+              defaultValue={0.85}
               onChange={(v) => setStepVelocity(part.id, editStep as number, v)}
               formatValue={(v) => Math.round(v * 100).toString()}
             />
@@ -96,6 +97,7 @@ export function StepGrid({ currentStep, isPlaying }: StepGridProps) {
               min={-12}
               max={12}
               step={1}
+              defaultValue={0}
               onChange={(v) => setStepPitch(part.id, editStep as number, v)}
               formatValue={(v) => (v > 0 ? `+${v}` : v.toString())}
             />

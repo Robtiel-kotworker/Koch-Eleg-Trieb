@@ -26,9 +26,9 @@ export function TransportBar({ isPlaying, onTogglePlay, onOpenSampleBrowser }: T
         {isPlaying ? '■ STOP' : '▶ PLAY'}
       </button>
 
-      <Knob label="Tempo" value={bpm} min={40} max={300} step={1} onChange={setBpm} formatValue={(v) => `${Math.round(v)}`} />
-      <Knob label="Swing" value={swing} min={0} max={0.75} onChange={setSwing} formatValue={(v) => `${Math.round(v * 100)}%`} />
-      <Knob label="Volume" value={masterVolume} min={0} max={1} onChange={setMasterVolume} formatValue={(v) => `${Math.round(v * 100)}`} />
+      <Knob label="Tempo" value={bpm} min={40} max={300} step={1} defaultValue={120} onChange={setBpm} formatValue={(v) => `${Math.round(v)}`} />
+      <Knob label="Swing" value={swing} min={0} max={0.75} defaultValue={0} onChange={setSwing} formatValue={(v) => `${Math.round(v * 100)}%`} />
+      <Knob label="Volume" value={masterVolume} min={0} max={1} defaultValue={0.85} onChange={setMasterVolume} formatValue={(v) => `${Math.round(v * 100)}`} />
 
       <button type="button" className="sample-browser-open" onClick={onOpenSampleBrowser}>
         Samples

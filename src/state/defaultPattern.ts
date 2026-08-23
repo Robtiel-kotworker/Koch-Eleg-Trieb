@@ -42,6 +42,7 @@ function defaultPart(index: number): Part {
     release: 0.3,
     mute: false,
     solo: false,
+    choke: false,
     steps: emptySteps(),
   };
 }

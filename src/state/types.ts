@@ -26,6 +26,8 @@ export interface Part {
   release: number;
   mute: boolean;
   solo: boolean;
+  /** "Cut itself": retriggering this part cuts off its own currently playing sample instead of stacking. */
+  choke: boolean;
   steps: Step[];
 }
 

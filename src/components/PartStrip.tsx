@@ -6,6 +6,7 @@ export function PartStrip() {
   const selectPart = useAppStore((s) => s.selectPart);
   const toggleMute = useAppStore((s) => s.toggleMute);
   const toggleSolo = useAppStore((s) => s.toggleSolo);
+  const toggleChoke = useAppStore((s) => s.toggleChoke);
 
   if (!pattern) return null;
 
@@ -24,6 +25,14 @@ export function PartStrip() {
               <span className="part-pad-index">{part.id + 1}</span>
               <span className="part-pad-name">{part.name}</span>
               {activeSteps > 0 && <span className="part-pad-dot" aria-hidden="true" />}
+            </button>
+            <button
+              type="button"
+              className={`mini-toggle choke-toggle ${part.choke ? 'active choke' : ''}`}
+              onClick={() => toggleChoke(part.id)}
+              title="Cut Itself: verhindert, dass sich mehrere Anschläge dieses Parts überlagern"
+            >
+              C
             </button>
             <div className="part-pad-toggles">
               <button

@@ -51,6 +51,7 @@ interface AppState {
   setPartRelease: (partId: number, release: number) => void;
   toggleMute: (partId: number) => void;
   toggleSolo: (partId: number) => void;
+  toggleChoke: (partId: number) => void;
 
   setStepCount: (count: number) => void;
   setBpm: (bpm: number) => void;
@@ -161,6 +162,10 @@ export const useAppStore = create<AppState>()(
       toggleSolo: (partId) =>
         set((state) =>
           updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, solo: !p.solo }))),
+        ),
+      toggleChoke: (partId) =>
+        set((state) =>
+          updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, choke: !p.choke }))),
         ),
 
       setStepCount: (count) =>
