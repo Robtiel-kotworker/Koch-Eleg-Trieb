@@ -32,6 +32,7 @@ function defaultPart(index: number): Part {
       .split('-')
       .map((w) => w[0].toUpperCase() + w.slice(1))
       .join(' '),
+    color: null,
     sampleId: `${INIT_KIT_PACK_ID}:${voiceId}`,
     level: 0.85,
     pan: 0,

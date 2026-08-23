@@ -9,6 +9,8 @@ export interface Step {
 export interface Part {
   id: number;
   name: string;
+  /** Custom pad accent color (hex), or null to use the default theme look. */
+  color: string | null;
   sampleId: string | null;
   /** 0..1 */
   level: number;

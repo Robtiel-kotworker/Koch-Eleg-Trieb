@@ -43,6 +43,7 @@ interface AppState {
   clearPart: (partId: number) => void;
 
   setPartName: (partId: number, name: string) => void;
+  setPartMeta: (partId: number, meta: { name: string; color: string | null }) => void;
   setPartSample: (partId: number, sampleId: string) => void;
   setPartLevel: (partId: number, level: number) => void;
   setPartPan: (partId: number, pan: number) => void;
@@ -142,6 +143,10 @@ export const useAppStore = create<AppState>()(
 
       setPartName: (partId, name) =>
         set((state) => updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, name })))),
+      setPartMeta: (partId, meta) =>
+        set((state) =>
+          updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, ...meta }))),
+        ),
       setPartSample: (partId, sampleId) =>
         set((state) => updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, sampleId })))),
       setPartLevel: (partId, level) =>

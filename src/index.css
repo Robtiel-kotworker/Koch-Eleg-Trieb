@@ -276,11 +276,116 @@ select {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
 }
 
 .part-pad.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 0 16px var(--accent-glow);
+}
+
+.part-pad.editing {
+  z-index: 20;
+  border-color: var(--accent);
+}
+
+/* In-pad rename & color editor, opened by a 3s long-press on the pad */
+.pad-editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.pad-editor-close {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pad-editor-close:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.pad-editor-name {
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+}
+
+.pad-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pad-editor-color-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.pad-editor-apply {
+  flex: 1;
+  background: var(--accent);
+  color: #1a1200;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pad-color-palette {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.palette-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0;
+}
+
+.palette-swatch.selected {
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+.palette-swatch.palette-reset {
+  background: var(--panel);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  line-height: 1;
 }
 
 .part-pad-main {
