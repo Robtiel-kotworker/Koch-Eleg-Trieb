@@ -50,6 +50,15 @@ function getAll<T>(db: IDBDatabase, store: string): Promise<T[]> {
   });
 }
 
+function getById<T>(db: IDBDatabase, store: string, id: string): Promise<T | undefined> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(store, 'readonly');
+    const request = transaction.objectStore(store).get(id);
+    request.onsuccess = () => resolve(request.result as T | undefined);
+    request.onerror = () => reject(request.error ?? new Error(`Failed to read ${store}`));
+  });
+}
+
 function randomId(): string {
   return crypto.randomUUID();
 }
@@ -63,6 +72,16 @@ export async function listPacks(): Promise<SamplePack[]> {
 export async function createPack(name: string): Promise<SamplePack> {
   const db = await openDb();
   const pack: SamplePack = { id: randomId(), name, createdAt: Date.now() };
+  await tx(db, PACKS_STORE, 'readwrite', (store) => store.put(pack));
+  return pack;
+}
+
+/** Create the pack if it doesn't exist yet, otherwise leave it (and its createdAt) untouched. */
+export async function upsertPack(id: string, name: string): Promise<SamplePack> {
+  const db = await openDb();
+  const existing = await getById<SamplePack>(db, PACKS_STORE, id);
+  if (existing) return existing;
+  const pack: SamplePack = { id, name, createdAt: Date.now() };
   await tx(db, PACKS_STORE, 'readwrite', (store) => store.put(pack));
   return pack;
 }
@@ -99,6 +118,26 @@ export async function addFilesToPack(packId: string, packName: string, files: Fi
     loaded.push({ id, name, packId, packName, builtIn: false, buffer });
   }
   return loaded;
+}
+
+/**
+ * Decode + persist a single sample fetched from the cloud library, keyed by
+ * a caller-supplied deterministic id so re-downloading the same remote file
+ * never creates a duplicate. Ensures the owning pack exists first.
+ */
+export async function cacheRemoteSample(
+  sampleId: string,
+  packId: string,
+  packName: string,
+  name: string,
+  data: ArrayBuffer,
+): Promise<{ pack: SamplePack; sample: LoadedSample }> {
+  const pack = await upsertPack(packId, packName);
+  const buffer = await audioEngine.decode(data.slice(0));
+  const db = await openDb();
+  const stored: StoredSample = { id: sampleId, packId, packName, name, data };
+  await tx(db, SAMPLES_STORE, 'readwrite', (store) => store.put(stored));
+  return { pack, sample: { id: sampleId, name, packId, packName, builtIn: false, buffer } };
 }
 
 /** Load and decode every previously imported sample. Runs once at startup. */

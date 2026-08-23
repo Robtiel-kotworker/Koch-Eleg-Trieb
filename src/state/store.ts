@@ -214,7 +214,10 @@ export const useAppStore = create<AppState>()(
           for (const s of newSamples) byId.set(s.id, s);
           return { samples: Array.from(byId.values()) };
         }),
-      addPack: (pack) => set((state) => ({ packs: [...state.packs, pack] })),
+      addPack: (pack) =>
+        set((state) => ({
+          packs: state.packs.some((p) => p.id === pack.id) ? state.packs : [...state.packs, pack],
+        })),
       removePackFromState: (packId) =>
         set((state) => ({
           packs: state.packs.filter((p) => p.id !== packId),
