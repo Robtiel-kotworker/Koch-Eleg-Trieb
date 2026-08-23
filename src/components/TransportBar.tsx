@@ -18,7 +18,7 @@ export function TransportBar({ isPlaying, onTogglePlay, onOpenSampleBrowser }: T
   return (
     <div className="transport-bar">
       <div className="brand">
-        <span className="brand-mark">ELECTRIBE</span>
+        <span className="brand-mark">ELEG-TRIEB</span>
         <span className="brand-sub">// CLONE</span>
       </div>
 

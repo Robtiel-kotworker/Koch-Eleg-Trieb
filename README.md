@@ -1,6 +1,6 @@
-# Electribe Clone
+# Eleg-Trieb Clone
 
-Ein hochwertiger Web-Klon der **Korg Electribe 2**: ein 16-Part-Step-Sequencer/Groovebox, der  komplett im Browser läuft (React + TypeScript + Web Audio API).
+Ein hochwertiger Web-Klon der **Koch Eleg-Trieb 2**: ein 16-Part-Step-Sequencer/Groovebox, der  komplett im Browser läuft (React + TypeScript + Web Audio API).
 
 ## Features
 

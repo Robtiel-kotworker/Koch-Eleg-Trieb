@@ -1,7 +1,7 @@
 import { audioEngine } from './AudioEngine';
 import type { LoadedSample, SamplePack } from './types';
 
-const DB_NAME = 'electribe-clone-db';
+const DB_NAME = 'eleg-trieb-clone-db';
 const DB_VERSION = 1;
 const PACKS_STORE = 'packs';
 const SAMPLES_STORE = 'samples';

@@ -240,7 +240,7 @@ export const useAppStore = create<AppState>()(
         set((state) => ({ detectedBpmBySampleId: { ...state.detectedBpmBySampleId, [sampleId]: bpm } })),
     }),
     {
-      name: 'electribe-clone-state',
+      name: 'eleg-trieb-clone-state',
       partialize: (state) => ({
         patterns: state.patterns,
         currentPatternId: state.currentPatternId,

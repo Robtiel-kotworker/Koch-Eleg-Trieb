@@ -36,7 +36,7 @@ function App() {
       {sampleBrowserOpen && <SampleBrowser onClose={() => setSampleBrowserOpen(false)} />}
 
       <footer className="app-footer">
-        Electribe Clone · Samples werden lokal im Browser gespeichert (IndexedDB) und stehen offline zur Verfügung.
+        Eleg-Trieb Clone · Samples werden lokal im Browser gespeichert (IndexedDB) und stehen offline zur Verfügung.
       </footer>
     </div>
   );
