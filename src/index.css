@@ -650,6 +650,13 @@ select {
   text-align: center;
 }
 
+.tempo-assign-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0 2px;
+}
+
 /* Sample browser modal */
 .modal-backdrop {
   position: fixed;
