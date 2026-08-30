@@ -18,6 +18,8 @@ export function TempoAssign({ partId, sample }: TempoAssignProps) {
   const [analyzing, setAnalyzing] = useState(false);
   const [noResult, setNoResult] = useState(false);
   const [autoSyncLabel, setAutoSyncLabel] = useState<string | null>(null);
+  const [editingBpm, setEditingBpm] = useState(false);
+  const [bpmDraft, setBpmDraft] = useState('');
 
   // Reset transient result state when the assigned sample changes, following
   // React's documented "adjust state during render" pattern instead of an
@@ -27,6 +29,7 @@ export function TempoAssign({ partId, sample }: TempoAssignProps) {
     setLastSeenSampleId(sample?.id);
     setNoResult(false);
     setAutoSyncLabel(null);
+    setEditingBpm(false);
   }
 
   const runDetect = async () => {
@@ -62,6 +65,23 @@ export function TempoAssign({ partId, sample }: TempoAssignProps) {
     setAutoSyncLabel(`→ ${result.targetLabel}`);
   };
 
+  const lockBpm = (bpm: number) => {
+    if (!sample || !Number.isFinite(bpm) || bpm <= 0) return;
+    setDetectedBpm(sample.id, Math.round(bpm * 10) / 10);
+  };
+
+  const startEditingBpm = () => {
+    if (!sample) return;
+    setBpmDraft(detectedBpm !== undefined ? String(detectedBpm) : '');
+    setEditingBpm(true);
+  };
+
+  const commitBpmDraft = () => {
+    const parsed = Number(bpmDraft.replace(',', '.'));
+    lockBpm(parsed);
+    setEditingBpm(false);
+  };
+
   let readout = '—';
   if (analyzing) readout = 'Analysiere…';
   else if (detectedBpm !== undefined) readout = `${detectedBpm} BPM`;
@@ -72,7 +92,42 @@ export function TempoAssign({ partId, sample }: TempoAssignProps) {
       <button type="button" className="ghost-button" onClick={() => void runDetect()} disabled={!sample || analyzing}>
         Tempo Autodetect
       </button>
-      <span className="tempo-assign-readout">{readout}</span>
+
+      {editingBpm ? (
+        <input
+          type="text"
+          inputMode="decimal"
+          autoFocus
+          className="tempo-bpm-input"
+          value={bpmDraft}
+          onChange={(e) => setBpmDraft(e.target.value)}
+          onBlur={commitBpmDraft}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commitBpmDraft();
+            if (e.key === 'Escape') setEditingBpm(false);
+          }}
+        />
+      ) : (
+        <span
+          className={`tempo-assign-readout ${sample ? 'editable' : ''}`}
+          onDoubleClick={startEditingBpm}
+          title={sample ? 'Doppelklick: BPM manuell eingeben und locken' : undefined}
+        >
+          {readout}
+        </span>
+      )}
+
+      {detectedBpm !== undefined && !editingBpm && (
+        <span className="tempo-octave-buttons">
+          <button type="button" className="tempo-octave-button" onClick={() => lockBpm(detectedBpm * 2)} title="BPM verdoppeln und locken">
+            x2
+          </button>
+          <button type="button" className="tempo-octave-button" onClick={() => lockBpm(detectedBpm / 2)} title="BPM halbieren und locken">
+            /2
+          </button>
+        </span>
+      )}
+
       <button
         type="button"
         className="ghost-button"
