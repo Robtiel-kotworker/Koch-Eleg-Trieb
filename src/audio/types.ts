@@ -38,4 +38,10 @@ export interface VoiceOptions {
   attack: number;
   /** Amp envelope release, seconds. */
   release: number;
+  /**
+   * When set, any currently playing voice previously started with the same
+   * group id is cut off (fast fade-out) as this voice starts, instead of
+   * letting both play at once ("cut itself" / self-choke).
+   */
+  chokeGroup?: string;
 }

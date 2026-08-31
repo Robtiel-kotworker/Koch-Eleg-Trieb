@@ -1,5 +1,6 @@
 import { useAppStore } from '../state/store';
 import { Knob } from './Knob';
+import { TempoAssign } from './TempoAssign';
 
 interface PartEditorProps {
   onOpenSampleBrowser: () => void;
@@ -37,24 +38,26 @@ export function PartEditor({ onOpenSampleBrowser }: PartEditorProps) {
           <span className="sample-picker-label">Sample</span>
           <span className="sample-picker-value">{sample ? sample.name : '— none —'}</span>
         </button>
+        <TempoAssign partId={part.id} sample={sample} />
       </div>
 
       <div className="knob-row">
-        <Knob label="Level" value={part.level} min={0} max={1} onChange={(v) => setPartLevel(part.id, v)} formatValue={(v) => Math.round(v * 100).toString()} />
-        <Knob label="Pan" value={part.pan} min={-1} max={1} onChange={(v) => setPartPan(part.id, v)} formatValue={(v) => (v === 0 ? 'C' : v > 0 ? `R${Math.round(v * 100)}` : `L${Math.round(-v * 100)}`)} />
-        <Knob label="Pitch" value={part.pitch} min={-24} max={24} step={1} onChange={(v) => setPartPitch(part.id, v)} formatValue={(v) => (v > 0 ? `+${v}` : v.toString())} />
+        <Knob label="Level" value={part.level} min={0} max={1} defaultValue={0.85} onChange={(v) => setPartLevel(part.id, v)} formatValue={(v) => Math.round(v * 100).toString()} />
+        <Knob label="Pan" value={part.pan} min={-1} max={1} defaultValue={0} onChange={(v) => setPartPan(part.id, v)} formatValue={(v) => (v === 0 ? 'C' : v > 0 ? `R${Math.round(v * 100)}` : `L${Math.round(-v * 100)}`)} />
+        <Knob label="Pitch" value={part.pitch} min={-24} max={24} step={1} defaultValue={0} onChange={(v) => setPartPitch(part.id, v)} formatValue={(v) => (v > 0 ? `+${v}` : v.toString())} />
         <Knob
           label="Cutoff"
           value={part.filterCutoff}
           min={200}
           max={20000}
           step={50}
+          defaultValue={20000}
           onChange={(v) => setPartFilterCutoff(part.id, v)}
           formatValue={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : Math.round(v).toString())}
         />
-        <Knob label="Reso" value={part.filterResonance} min={0.1} max={20} onChange={(v) => setPartFilterResonance(part.id, v)} formatValue={(v) => v.toFixed(1)} />
-        <Knob label="Attack" value={part.attack} min={0.002} max={1} onChange={(v) => setPartAttack(part.id, v)} formatValue={(v) => `${Math.round(v * 1000)}ms`} />
-        <Knob label="Release" value={part.release} min={0.01} max={2} onChange={(v) => setPartRelease(part.id, v)} formatValue={(v) => `${Math.round(v * 1000)}ms`} />
+        <Knob label="Reso" value={part.filterResonance} min={0.1} max={20} defaultValue={0.7} onChange={(v) => setPartFilterResonance(part.id, v)} formatValue={(v) => v.toFixed(1)} />
+        <Knob label="Attack" value={part.attack} min={0.002} max={1} defaultValue={0.002} onChange={(v) => setPartAttack(part.id, v)} formatValue={(v) => `${Math.round(v * 1000)}ms`} />
+        <Knob label="Release" value={part.release} min={0.01} max={2} defaultValue={0.3} onChange={(v) => setPartRelease(part.id, v)} formatValue={(v) => `${Math.round(v * 1000)}ms`} />
       </div>
     </div>
   );

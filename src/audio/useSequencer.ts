@@ -44,6 +44,7 @@ export function useSequencer() {
             filterResonance: part.filterResonance,
             attack: part.attack,
             release: part.release,
+            chokeGroup: part.choke ? `part:${part.id}` : undefined,
           });
         }
       },

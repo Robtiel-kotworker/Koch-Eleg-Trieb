@@ -4,12 +4,16 @@ import { audioEngine } from '../audio/AudioEngine';
 import { addFilesToPack, createPack, deletePack, deleteSample } from '../audio/sampleStore';
 import type { LoadedSample } from '../audio/types';
 import { useAppStore } from '../state/store';
+import { CloudLibraryPanel } from './CloudLibraryPanel';
 
 interface SampleBrowserProps {
   onClose: () => void;
 }
 
+type BrowserTab = 'packs' | 'cloud';
+
 export function SampleBrowser({ onClose }: SampleBrowserProps) {
+  const [tab, setTab] = useState<BrowserTab>('packs');
   const samples = useAppStore((s) => s.samples);
   const packs = useAppStore((s) => s.packs);
   const selectedPartId = useAppStore((s) => s.selectedPartId);
@@ -154,75 +158,90 @@ export function SampleBrowser({ onClose }: SampleBrowserProps) {
           )}
         </p>
 
-        {error && <p className="sample-browser-error">{error}</p>}
-
-        <div className="new-pack-row">
-          <input
-            type="text"
-            placeholder="Neues Pack benennen…"
-            value={newPackName}
-            onChange={(e) => setNewPackName(e.target.value)}
-            maxLength={40}
-          />
-          <button type="button" onClick={() => void handleCreatePack()} disabled={busy}>
-            + Lokales Sample Pack hinzufügen
+        <div className="browser-tabs" role="tablist">
+          <button type="button" role="tab" aria-selected={tab === 'packs'} className={tab === 'packs' ? 'active' : ''} onClick={() => setTab('packs')}>
+            Packs
           </button>
-          <input
-            ref={newPackFileInput}
-            type="file"
-            multiple
-            accept="audio/*"
-            className="visually-hidden"
-            onChange={(e) => void handleNewPackFiles(e)}
-          />
+          <button type="button" role="tab" aria-selected={tab === 'cloud'} className={tab === 'cloud' ? 'active' : ''} onClick={() => setTab('cloud')}>
+            Cloud-Bibliothek
+          </button>
         </div>
 
-        <div className="pack-list">
-          {packGroups.map((group) => {
-            const groupSamples = samples.filter((s) => s.packId === group.id);
-            return (
-              <div key={group.id} className="pack-group">
-                <div className="pack-group-header">
-                  <span className="pack-group-name">{group.name}</span>
-                  {!group.builtIn && (
-                    <span className="pack-group-actions">
-                      <button type="button" className="ghost-button" onClick={() => handleAddToPack(group.id, group.name)}>
-                        + Dateien
-                      </button>
-                      <button type="button" className="ghost-button danger" onClick={() => void handleDeletePack(group.id)}>
-                        Pack löschen
-                      </button>
-                    </span>
-                  )}
-                </div>
-                {groupSamples.length === 0 ? (
-                  <p className="pack-empty-hint">Keine Samples.</p>
-                ) : (
-                  <ul className="sample-list">
-                    {groupSamples.map((sample) => (
-                      <li key={sample.id} className={part?.sampleId === sample.id ? 'assigned' : ''}>
-                        <button type="button" className="sample-row" onClick={() => assignSample(sample)}>
-                          <span>{sample.name}</span>
-                          <span className="sample-duration">{sample.buffer.duration.toFixed(2)}s</span>
-                        </button>
-                        {!sample.builtIn && (
-                          <button
-                            type="button"
-                            className="icon-button small"
-                            onClick={() => void handleDeleteSample(sample.id)}
-                            aria-label={`${sample.name} löschen`}
-                          >
-                            ×
+        {tab === 'packs' ? (
+          <>
+            {error && <p className="sample-browser-error">{error}</p>}
+
+            <div className="new-pack-row">
+              <input
+                type="text"
+                placeholder="Neues Pack benennen…"
+                value={newPackName}
+                onChange={(e) => setNewPackName(e.target.value)}
+                maxLength={40}
+              />
+              <button type="button" onClick={() => void handleCreatePack()} disabled={busy}>
+                + Lokales Sample Pack hinzufügen
+              </button>
+              <input
+                ref={newPackFileInput}
+                type="file"
+                multiple
+                accept="audio/*"
+                className="visually-hidden"
+                onChange={(e) => void handleNewPackFiles(e)}
+              />
+            </div>
+
+            <div className="pack-list">
+              {packGroups.map((group) => {
+                const groupSamples = samples.filter((s) => s.packId === group.id);
+                return (
+                  <div key={group.id} className="pack-group">
+                    <div className="pack-group-header">
+                      <span className="pack-group-name">{group.name}</span>
+                      {!group.builtIn && (
+                        <span className="pack-group-actions">
+                          <button type="button" className="ghost-button" onClick={() => handleAddToPack(group.id, group.name)}>
+                            + Dateien
                           </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                          <button type="button" className="ghost-button danger" onClick={() => void handleDeletePack(group.id)}>
+                            Pack löschen
+                          </button>
+                        </span>
+                      )}
+                    </div>
+                    {groupSamples.length === 0 ? (
+                      <p className="pack-empty-hint">Keine Samples.</p>
+                    ) : (
+                      <ul className="sample-list">
+                        {groupSamples.map((sample) => (
+                          <li key={sample.id} className={part?.sampleId === sample.id ? 'assigned' : ''}>
+                            <button type="button" className="sample-row" onClick={() => assignSample(sample)}>
+                              <span>{sample.name}</span>
+                              <span className="sample-duration">{sample.buffer.duration.toFixed(2)}s</span>
+                            </button>
+                            {!sample.builtIn && (
+                              <button
+                                type="button"
+                                className="icon-button small"
+                                onClick={() => void handleDeleteSample(sample.id)}
+                                aria-label={`${sample.name} löschen`}
+                              >
+                                ×
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <CloudLibraryPanel />
+        )}
       </div>
     </div>
   );

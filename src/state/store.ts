@@ -31,6 +31,8 @@ interface AppState {
   audioReady: boolean;
   samples: LoadedSample[];
   packs: SamplePack[];
+  /** Sample id -> last auto-detected tempo, so re-selecting a sample remembers it. */
+  detectedBpmBySampleId: Record<string, number>;
 
   init: () => Promise<void>;
   setPlaying: (playing: boolean) => void;
@@ -41,6 +43,7 @@ interface AppState {
   clearPart: (partId: number) => void;
 
   setPartName: (partId: number, name: string) => void;
+  setPartMeta: (partId: number, meta: { name: string; color: string | null }) => void;
   setPartSample: (partId: number, sampleId: string) => void;
   setPartLevel: (partId: number, level: number) => void;
   setPartPan: (partId: number, pan: number) => void;
@@ -51,6 +54,7 @@ interface AppState {
   setPartRelease: (partId: number, release: number) => void;
   toggleMute: (partId: number) => void;
   toggleSolo: (partId: number) => void;
+  toggleChoke: (partId: number) => void;
 
   setStepCount: (count: number) => void;
   setBpm: (bpm: number) => void;
@@ -69,6 +73,8 @@ interface AppState {
   addPack: (pack: SamplePack) => void;
   removePackFromState: (packId: string) => void;
   removeSampleFromState: (sampleId: string) => void;
+
+  setDetectedBpm: (sampleId: string, bpm: number) => void;
 }
 
 function updateCurrentPattern(state: AppState, fn: (pattern: Pattern) => Pattern): Pick<AppState, 'patterns'> {
@@ -91,6 +97,7 @@ export const useAppStore = create<AppState>()(
       audioReady: false,
       samples: [],
       packs: [],
+      detectedBpmBySampleId: {},
 
       init: async () => {
         const [initKit, userSamples, packs] = await Promise.all([
@@ -136,6 +143,10 @@ export const useAppStore = create<AppState>()(
 
       setPartName: (partId, name) =>
         set((state) => updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, name })))),
+      setPartMeta: (partId, meta) =>
+        set((state) =>
+          updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, ...meta }))),
+        ),
       setPartSample: (partId, sampleId) =>
         set((state) => updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, sampleId })))),
       setPartLevel: (partId, level) =>
@@ -161,6 +172,10 @@ export const useAppStore = create<AppState>()(
       toggleSolo: (partId) =>
         set((state) =>
           updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, solo: !p.solo }))),
+        ),
+      toggleChoke: (partId) =>
+        set((state) =>
+          updateCurrentPattern(state, (pattern) => mapPart(pattern, partId, (p) => ({ ...p, choke: !p.choke }))),
         ),
 
       setStepCount: (count) =>
@@ -214,7 +229,10 @@ export const useAppStore = create<AppState>()(
           for (const s of newSamples) byId.set(s.id, s);
           return { samples: Array.from(byId.values()) };
         }),
-      addPack: (pack) => set((state) => ({ packs: [...state.packs, pack] })),
+      addPack: (pack) =>
+        set((state) => ({
+          packs: state.packs.some((p) => p.id === pack.id) ? state.packs : [...state.packs, pack],
+        })),
       removePackFromState: (packId) =>
         set((state) => ({
           packs: state.packs.filter((p) => p.id !== packId),
@@ -222,9 +240,12 @@ export const useAppStore = create<AppState>()(
         })),
       removeSampleFromState: (sampleId) =>
         set((state) => ({ samples: state.samples.filter((s) => s.id !== sampleId) })),
+
+      setDetectedBpm: (sampleId, bpm) =>
+        set((state) => ({ detectedBpmBySampleId: { ...state.detectedBpmBySampleId, [sampleId]: bpm } })),
     }),
     {
-      name: 'electribe-clone-state',
+      name: 'eleg-trieb-clone-state',
       partialize: (state) => ({
         patterns: state.patterns,
         currentPatternId: state.currentPatternId,
@@ -232,6 +253,7 @@ export const useAppStore = create<AppState>()(
         swing: state.swing,
         masterVolume: state.masterVolume,
         selectedPartId: state.selectedPartId,
+        detectedBpmBySampleId: state.detectedBpmBySampleId,
       }),
     },
   ),

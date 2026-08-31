@@ -9,6 +9,8 @@ export interface Step {
 export interface Part {
   id: number;
   name: string;
+  /** Custom pad accent color (hex), or null to use the default theme look. */
+  color: string | null;
   sampleId: string | null;
   /** 0..1 */
   level: number;
@@ -26,6 +28,8 @@ export interface Part {
   release: number;
   mute: boolean;
   solo: boolean;
+  /** "Cut itself": retriggering this part cuts off its own currently playing sample instead of stacking. */
+  choke: boolean;
   steps: Step[];
 }
 
