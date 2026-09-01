@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRecorder } from './audio/useRecorder';
 import { useSequencer } from './audio/useSequencer';
 import { useAppStore } from './state/store';
 import { PartEditor } from './components/PartEditor';
@@ -12,6 +13,7 @@ function App() {
   const audioReady = useAppStore((s) => s.audioReady);
   const [sampleBrowserOpen, setSampleBrowserOpen] = useState(false);
   const { currentStep, playing, togglePlay } = useSequencer();
+  const { status: recorderStatus, message: recorderMessage, toggleRecording } = useRecorder();
 
   useEffect(() => {
     void useAppStore.getState().init();
@@ -23,6 +25,9 @@ function App() {
         isPlaying={playing}
         onTogglePlay={() => void togglePlay()}
         onOpenSampleBrowser={() => setSampleBrowserOpen(true)}
+        recorderStatus={recorderStatus}
+        recorderMessage={recorderMessage}
+        onToggleRecording={toggleRecording}
       />
 
       <PatternManager />

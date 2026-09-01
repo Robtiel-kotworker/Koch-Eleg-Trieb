@@ -121,6 +121,54 @@ select {
   box-shadow: 0 0 18px rgba(255, 92, 92, 0.55);
 }
 
+.transport-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rec-button {
+  background: var(--panel-raised);
+  color: var(--danger);
+  border: 2px solid var(--danger);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.rec-button:hover:not(:disabled) {
+  background: rgba(255, 92, 92, 0.12);
+}
+
+.rec-button.active {
+  background: var(--danger);
+  color: #200;
+  box-shadow: 0 0 18px rgba(255, 92, 92, 0.6);
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+
+.rec-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes rec-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(255, 92, 92, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(255, 92, 92, 0.85);
+  }
+}
+
+.rec-status {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
 .sample-browser-open {
   margin-left: auto;
   background: transparent;

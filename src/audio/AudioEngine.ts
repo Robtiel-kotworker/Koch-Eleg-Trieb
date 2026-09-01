@@ -53,6 +53,20 @@ class AudioEngine {
     return this.context.decodeAudioData(data);
   }
 
+  /** Taps the master bus into `node`, e.g. for recording everything that's audible. */
+  tapMaster(node: AudioNode): void {
+    this.master.connect(node);
+  }
+
+  /** Removes a tap previously attached via {@link tapMaster}. */
+  untapMaster(node: AudioNode): void {
+    try {
+      this.master.disconnect(node);
+    } catch {
+      // Already disconnected; nothing to do.
+    }
+  }
+
   /**
    * Trigger a one-shot playback of `buffer` with per-voice pitch, filter,
    * pan and amp-envelope shaping. Fully self-cleaning: all nodes are
