@@ -44,4 +44,6 @@ export interface VoiceOptions {
    * letting both play at once ("cut itself" / self-choke).
    */
   chokeGroup?: string;
+  /** When set, playback (and its release envelope) is clamped to at most this many seconds. */
+  maxDuration?: number;
 }

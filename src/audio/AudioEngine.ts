@@ -1,7 +1,11 @@
 import type { VoiceOptions } from './types';
 
-/** How long a choked voice takes to fade out before being stopped, in seconds. */
-const CHOKE_FADE_S = 0.01;
+/** How long a stopped/choked voice takes to fade out before being stopped, in seconds. */
+const FADE_OUT_S = 0.01;
+/** Reserved choke group for sample-browser/cloud-library previews, so only one ever plays at once. */
+const PREVIEW_CHOKE_GROUP = '__preview__';
+/** Previews never play longer than this, regardless of the sample's own length. */
+const PREVIEW_MAX_DURATION_S = 5;
 
 interface ActiveVoice {
   source: AudioBufferSourceNode;
@@ -16,6 +20,7 @@ interface ActiveVoice {
 class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private readonly activeVoices = new Set<ActiveVoice>();
   private readonly activeVoicesByChokeGroup = new Map<string, ActiveVoice>();
 
   get context(): AudioContext {
@@ -96,7 +101,8 @@ class AudioEngine {
     const gain = ctx.createGain();
     const peak = Math.max(0.0001, Math.min(1, opts.velocity * opts.level));
     const attack = Math.max(0.002, opts.attack);
-    const rawDuration = buffer.duration / rate;
+    const naturalDuration = buffer.duration / rate;
+    const rawDuration = Math.min(naturalDuration, opts.maxDuration ?? Infinity);
     const release = Math.max(0.005, Math.min(opts.release, rawDuration));
     const sustainEnd = Math.max(t + attack, t + rawDuration - release);
 
@@ -109,19 +115,52 @@ class AudioEngine {
     source.start(t);
     source.stop(t + rawDuration + 0.05);
 
+    const voice: ActiveVoice = { source, gain };
+    this.activeVoices.add(voice);
     const chokeGroup = opts.chokeGroup;
     if (chokeGroup) {
-      this.activeVoicesByChokeGroup.set(chokeGroup, { source, gain });
+      this.activeVoicesByChokeGroup.set(chokeGroup, voice);
     }
     source.onended = () => {
       source.disconnect();
       filter.disconnect();
       panner.disconnect();
       gain.disconnect();
-      if (chokeGroup && this.activeVoicesByChokeGroup.get(chokeGroup)?.source === source) {
+      this.activeVoices.delete(voice);
+      if (chokeGroup && this.activeVoicesByChokeGroup.get(chokeGroup) === voice) {
         this.activeVoicesByChokeGroup.delete(chokeGroup);
       }
     };
+  }
+
+  /**
+   * Plays a sample preview (Sample Browser / Cloud Library): capped to
+   * {@link PREVIEW_MAX_DURATION_S} regardless of the sample's own length,
+   * and always hard-cuts whatever preview was playing before it so previews
+   * never overlap.
+   */
+  playPreview(buffer: AudioBuffer): void {
+    this.playVoice(buffer, {
+      time: this.context.currentTime,
+      velocity: 1,
+      level: 1,
+      pan: 0,
+      pitchSemitones: 0,
+      filterCutoff: 20000,
+      filterResonance: 0.7,
+      attack: 0.002,
+      release: 0.05,
+      chokeGroup: PREVIEW_CHOKE_GROUP,
+      maxDuration: PREVIEW_MAX_DURATION_S,
+    });
+  }
+
+  /** Immediately fades out and stops every currently playing voice (e.g. on transport stop). */
+  stopAllVoices(): void {
+    const now = this.context.currentTime;
+    for (const voice of Array.from(this.activeVoices)) {
+      this.fadeAndStop(voice, now);
+    }
   }
 
   /** Fades out and stops whatever voice is currently active for this choke group, if any. */
@@ -129,11 +168,15 @@ class AudioEngine {
     const active = this.activeVoicesByChokeGroup.get(chokeGroup);
     if (!active) return;
     this.activeVoicesByChokeGroup.delete(chokeGroup);
+    this.fadeAndStop(active, atTime);
+  }
+
+  private fadeAndStop(voice: ActiveVoice, atTime: number): void {
     try {
-      active.gain.gain.cancelScheduledValues(atTime);
-      active.gain.gain.setValueAtTime(active.gain.gain.value, atTime);
-      active.gain.gain.linearRampToValueAtTime(0.0001, atTime + CHOKE_FADE_S);
-      active.source.stop(atTime + CHOKE_FADE_S + 0.005);
+      voice.gain.gain.cancelScheduledValues(atTime);
+      voice.gain.gain.setValueAtTime(voice.gain.gain.value, atTime);
+      voice.gain.gain.linearRampToValueAtTime(0.0001, atTime + FADE_OUT_S);
+      voice.source.stop(atTime + FADE_OUT_S + 0.005);
     } catch {
       // Voice may have already finished/stopped on its own; nothing to do.
     }

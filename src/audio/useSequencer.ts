@@ -60,6 +60,9 @@ export function useSequencer() {
       scheduler.start();
     } else {
       scheduler.stop();
+      // Cut off any still-sounding voices immediately (e.g. a long rack
+      // sample mid-playback) instead of letting them run to their natural end.
+      audioEngine.stopAllVoices();
     }
   }, [playing]);
 

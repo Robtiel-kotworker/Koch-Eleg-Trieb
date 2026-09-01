@@ -35,17 +35,7 @@ export function SampleBrowser({ onClose }: SampleBrowserProps) {
 
   const previewSample = (sample: LoadedSample) => {
     void audioEngine.resume();
-    audioEngine.playVoice(sample.buffer, {
-      time: audioEngine.context.currentTime,
-      velocity: 1,
-      level: 1,
-      pan: 0,
-      pitchSemitones: 0,
-      filterCutoff: 20000,
-      filterResonance: 0.7,
-      attack: 0.002,
-      release: 0.4,
-    });
+    audioEngine.playPreview(sample.buffer);
   };
 
   const assignSample = (sample: LoadedSample) => {
